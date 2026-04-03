@@ -1,6 +1,7 @@
 package br.com.fiap.study_apir.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -25,40 +26,47 @@ public class ProdutoController {
     // queremos que a controller use a classe - e dentro dessa variável nós poderemos chamar os métodos
     private RepositoryProdutoMockup mockup = new RepositoryProdutoMockup();
     // criar método que responda as aplicações - CRUD
-    
+
     // método POST
     // colocamos o responseEntity
     @PostMapping
-    public ResponseEntity<String> create(){
-        return  ResponseEntity.status(HttpStatus.CREATED).body("Produto Criado"); //body é o texto que vamos retornar 
+    public ResponseEntity<String> create() {
+        return ResponseEntity.status(HttpStatus.CREATED).body("Produto Criado"); // body é o texto que vamos retornar
     }
 
-    // método é GET
-    // vamos alterar - recebe um id de produto >> Se recebermos 
-    @GetMapping("/{id}") 
-    public ResponseEntity<Produto> findById(@PathVariable Long id){
-        // colocamos o método - passamos o id que o método tá esperando 
-        // vai retornar um produto - então criamos a variável produto 
-        Produto produto =  mockup.findById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(produto); // não retorna mais um texto, retorna o objeto produto
+    @GetMapping("/{id}")
+    public ResponseEntity<Produto> findById(@PathVariable Long id) {
+        // map vai pegar o dado de um lado (lado do objeto que estamos tratando) > Se o
+        // produto existir, no map ele pega o produto e manda para a variável
+        return mockup
+                .findById(id)
+                // map já eespera um produto e o ok também - então podemos reduzir o código
+                .map(ResponseEntity::ok) // aqui tratamos os tipos de dados - OK
+                .orElse(ResponseEntity.notFound().build()); // not found
     }
 
     // find all
     @GetMapping
     public ResponseEntity<List<Produto>> findAll() {
-        return ResponseEntity.status(HttpStatus.OK).body(mockup.findAll());            
+        return ResponseEntity.ok(mockup.findAll());
     }
 
     // método PUT
     @PutMapping
-    public ResponseEntity<String> update(){
-        return ResponseEntity.status(HttpStatus.OK).body("Produto Atualizado");
+    public ResponseEntity<String> update() {
+        return ResponseEntity.ok("Produto Atualizado");
     }
-    
 
     // método DELETE
-    @DeleteMapping
-    public ResponseEntity<String> delete(){
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Produo Excluído");
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) { // deixamos Void - ResponseEntity - sempre espera
+                                                // uma classe > Deixamos Void - classe que mostra
+                                                // que não tem conteúdo a ser retornado
+        if (mockup.deleteById(id)) {
+            return ResponseEntity.noContent().build(); // código 204
+        } else {
+            return ResponseEntity.notFound().build(); // código 404
+        }
+
     }
 }
