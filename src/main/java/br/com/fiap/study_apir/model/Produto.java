@@ -15,9 +15,17 @@ import lombok.Setter;
 // essa anotação substitui as anteriores 
 @Data 
 public class Produto {
-    private final Long id;
-    private final String nome;
+    private Long id;
+    private String nome;
     // para valores, usamos BigDecimal 
-    private final BigDecimal valor;
+    private BigDecimal valor;
     
+    // adicionamos para ajustar um erro no repositório 
+    public Produto(Long id, String nome, BigDecimal valor) {
+        this.id = id;
+        this.nome = nome;
+        this.valor = valor;
+    }
 }
+
+

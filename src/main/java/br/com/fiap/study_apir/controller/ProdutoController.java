@@ -3,6 +3,7 @@ package br.com.fiap.study_apir.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,24 +15,29 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.RequestBody;
+
 import br.com.fiap.study_apir.model.Produto;
 import br.com.fiap.study_apir.repository.RepositoryProdutoMockup;
+
 
 // anotação para informar que é controller
 @RestController
 @RequestMapping("api/${api.version}/produtos")
 public class ProdutoController {
-
+    
     // vamos instanciar a classe repository para acessar os métodos
     // queremos que a controller use a classe - e dentro dessa variável nós poderemos chamar os métodos
-    private RepositoryProdutoMockup mockup = new RepositoryProdutoMockup();
+    // vai fazer a injeção automática de dependências
+    @Autowired
+    private RepositoryProdutoMockup mockup;
     // criar método que responda as aplicações - CRUD
 
     // método POST
-    // colocamos o responseEntity
+    // ao criar uma entidade - estamos colocando que receberá um produto 
     @PostMapping
-    public ResponseEntity<String> create() {
-        return ResponseEntity.status(HttpStatus.CREATED).body("Produto Criado"); // body é o texto que vamos retornar
+    public ResponseEntity<Produto> create(@RequestBody Produto produto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(mockup.create(produto)); 
     }
 
     @GetMapping("/{id}")
@@ -52,9 +58,13 @@ public class ProdutoController {
     }
 
     // método PUT
-    @PutMapping
-    public ResponseEntity<String> update() {
-        return ResponseEntity.ok("Produto Atualizado");
+    @PutMapping("/{id}")
+    public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Produto produto) { 
+        if (mockup.update(id, produto)) {
+            return ResponseEntity.ok("Produto Atualizado");
+        } else {
+             return ResponseEntity.notFound().build(); 
+        }
     }
 
     // método DELETE
