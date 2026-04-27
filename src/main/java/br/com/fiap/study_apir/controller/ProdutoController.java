@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import br.com.fiap.study_apir.model.Produto;
+import br.com.fiap.study_apir.repository.ProdutoRepository;
 import br.com.fiap.study_apir.repository.RepositoryProdutoMockup;
 
 
@@ -25,7 +26,8 @@ import br.com.fiap.study_apir.repository.RepositoryProdutoMockup;
 @RestController
 @RequestMapping("api/${api.version}/produtos")
 public class ProdutoController {
-    
+    private ProdutoRepository repository;
+
     // vamos instanciar a classe repository para acessar os métodos
     // queremos que a controller use a classe - e dentro dessa variável nós poderemos chamar os métodos
     // vai fazer a injeção automática de dependências
@@ -37,6 +39,7 @@ public class ProdutoController {
     // ao criar uma entidade - estamos colocando que receberá um produto 
     @PostMapping
     public ResponseEntity<Produto> create(@RequestBody Produto produto) {
+        repository.save(produto);
         return ResponseEntity.status(HttpStatus.CREATED).body(mockup.create(produto)); 
     }
 
@@ -54,29 +57,39 @@ public class ProdutoController {
     // find all
     @GetMapping
     public ResponseEntity<List<Produto>> findAll() {
+        repository.findAll();
         return ResponseEntity.ok(mockup.findAll());
     }
 
     // método PUT
-    @PutMapping("/{id}")
-    public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Produto produto) { 
-        if (mockup.update(id, produto)) {
-            return ResponseEntity.ok("Produto Atualizado");
-        } else {
-             return ResponseEntity.notFound().build(); 
-        }
-    }
+    // @PutMapping("/{id}")
+    // public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Produto produto) { 
+    //    Optional<Produto> optProduto = repository.findById(id);
+
+    //    if(optProduto.isPresent()){
+    //     produto.set
+    //     repository.save(produto);
+    //    }
+
+    //     if (mockup.update(id, produto)) {
+    //         return ResponseEntity.ok("Produto Atualizado");
+    //     } else {
+    //          return ResponseEntity.notFound().build(); 
+    //     }
+    // }
 
     // método DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteById(@PathVariable Long id) { // deixamos Void - ResponseEntity - sempre espera
                                                 // uma classe > Deixamos Void - classe que mostra
                                                 // que não tem conteúdo a ser retornado
-        if (mockup.deleteById(id)) {
-            return ResponseEntity.noContent().build(); // código 204
-        } else {
-            return ResponseEntity.notFound().build(); // código 404
-        }
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build(); 
+        // if (mockup.deleteById(id)) {
+        //     return ResponseEntity.noContent().build(); // código 204
+        // } else {
+        //     return ResponseEntity.notFound().build(); // código 404
+        // }
 
     }
 }
