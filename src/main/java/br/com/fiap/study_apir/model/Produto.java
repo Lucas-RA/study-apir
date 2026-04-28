@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import lombok.Setter;
 // essa anotação substitui as anteriores 
 @Data
 @Entity
+@Table(name = "produtos")
 public class Produto {
     @Id
     private Long id;
