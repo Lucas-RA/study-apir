@@ -30,4 +30,10 @@ public class Produto {
         this.nome = nome;
         this.valor = valor;
     }
+
+    // construtor sem propriedades 
+    public Produto() {
+    }
+
+    
 }

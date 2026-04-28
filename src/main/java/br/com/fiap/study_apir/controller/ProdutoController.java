@@ -26,13 +26,14 @@ import br.com.fiap.study_apir.repository.RepositoryProdutoMockup;
 @RestController
 @RequestMapping("api/${api.version}/produtos")
 public class ProdutoController {
+    @Autowired
     private ProdutoRepository repository;
 
     // vamos instanciar a classe repository para acessar os métodos
     // queremos que a controller use a classe - e dentro dessa variável nós poderemos chamar os métodos
     // vai fazer a injeção automática de dependências
-    @Autowired
-    private RepositoryProdutoMockup mockup;
+    
+   
     // criar método que responda as aplicações - CRUD
 
     // método POST
@@ -40,14 +41,14 @@ public class ProdutoController {
     @PostMapping
     public ResponseEntity<Produto> create(@RequestBody Produto produto) {
         repository.save(produto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mockup.create(produto)); 
+        return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(produto)); 
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Produto> findById(@PathVariable Long id) {
         // map vai pegar o dado de um lado (lado do objeto que estamos tratando) > Se o
         // produto existir, no map ele pega o produto e manda para a variável
-        return mockup
+        return repository
                 .findById(id)
                 // map já eespera um produto e o ok também - então podemos reduzir o código
                 .map(ResponseEntity::ok) // aqui tratamos os tipos de dados - OK
@@ -58,25 +59,22 @@ public class ProdutoController {
     @GetMapping
     public ResponseEntity<List<Produto>> findAll() {
         repository.findAll();
-        return ResponseEntity.ok(mockup.findAll());
+        return ResponseEntity.ok(repository.findAll());
     }
 
-    // método PUT
-    // @PutMapping("/{id}")
-    // public ResponseEntity<String> update(@PathVariable Long id, @RequestBody Produto produto) { 
-    //    Optional<Produto> optProduto = repository.findById(id);
+    // método PUT - tiramos para fazer uma alteração 
+    @PutMapping("/{id}")
+    public ResponseEntity<Produto> update(@PathVariable Long id, @RequestBody Produto produto) { 
+       Optional<Produto> optProduto = repository.findById(id);
 
-    //    if(optProduto.isPresent()){
-    //     produto.set
-    //     repository.save(produto);
-    //    }
-
-    //     if (mockup.update(id, produto)) {
-    //         return ResponseEntity.ok("Produto Atualizado");
-    //     } else {
-    //          return ResponseEntity.notFound().build(); 
-    //     }
-    // }
+       if(optProduto.isPresent()){
+        produto.setId(id);
+        Produto produtoAlterado = repository.save(produto); // retorna uma entidade
+        return ResponseEntity.ok(produtoAlterado);
+       } else {
+            return ResponseEntity.notFound().build();
+       }
+    }
 
     // método DELETE
     @DeleteMapping("/{id}")
