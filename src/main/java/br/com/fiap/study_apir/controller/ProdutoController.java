@@ -17,77 +17,66 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
+import br.com.fiap.study_apir.dto.ProdutoCreateRequest;
+import br.com.fiap.study_apir.dto.ProdutoMapper;
 import br.com.fiap.study_apir.model.Produto;
 import br.com.fiap.study_apir.repository.ProdutoRepository;
 import br.com.fiap.study_apir.repository.RepositoryProdutoMockup;
 
+import br.com.fiap.study_apir.service.ProdutoService;
 
 // anotação para informar que é controller
 @RestController
 @RequestMapping("api/${api.version}/produtos")
 public class ProdutoController {
+   
     @Autowired
-    private ProdutoRepository repository;
+    private ProdutoService service;
 
-    // vamos instanciar a classe repository para acessar os métodos
-    // queremos que a controller use a classe - e dentro dessa variável nós poderemos chamar os métodos
-    // vai fazer a injeção automática de dependências
-    
+    // nova injeção
+    @Autowired
+    private ProdutoMapper produtoMapper;
    
     // criar método que responda as aplicações - CRUD
 
     // método POST
-    // ao criar uma entidade - estamos colocando que receberá um produto 
     @PostMapping
-    public ResponseEntity<Produto> create(@RequestBody Produto produto) {
-        repository.save(produto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(repository.save(produto)); 
+    public ResponseEntity<Produto> create(@RequestBody ProdutoCreateRequest dtoRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.createOrUpdate(produtoMapper.toModel(dtoRequest))); 
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Produto> findById(@PathVariable Long id) {
-        // map vai pegar o dado de um lado (lado do objeto que estamos tratando) > Se o
-        // produto existir, no map ele pega o produto e manda para a variável
-        return repository
+        return service
                 .findById(id)
-                // map já eespera um produto e o ok também - então podemos reduzir o código
-                .map(ResponseEntity::ok) // aqui tratamos os tipos de dados - OK
-                .orElse(ResponseEntity.notFound().build()); // not found
+                .map(ResponseEntity::ok) 
+                .orElse(ResponseEntity.notFound().build()); 
     }
 
     // find all
     @GetMapping
     public ResponseEntity<List<Produto>> findAll() {
-        repository.findAll();
-        return ResponseEntity.ok(repository.findAll());
+        return ResponseEntity.ok(service.findAll());
     }
 
-    // método PUT - tiramos para fazer uma alteração 
+    // método PUT 
     @PutMapping("/{id}")
     public ResponseEntity<Produto> update(@PathVariable Long id, @RequestBody Produto produto) { 
-       Optional<Produto> optProduto = repository.findById(id);
+       Optional<Produto> optProduto = service.findById(id);
 
        if(optProduto.isPresent()){
         produto.setId(id);
-        Produto produtoAlterado = repository.save(produto); // retorna uma entidade
+        Produto produtoAlterado = service.createOrUpdate(produto); 
         return ResponseEntity.ok(produtoAlterado);
-       } else {
+        } else {
             return ResponseEntity.notFound().build();
-       }
+        }
     }
 
     // método DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteById(@PathVariable Long id) { // deixamos Void - ResponseEntity - sempre espera
-                                                // uma classe > Deixamos Void - classe que mostra
-                                                // que não tem conteúdo a ser retornado
-        repository.deleteById(id);
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) { 
+        service.deleteById(id);
         return ResponseEntity.noContent().build(); 
-        // if (mockup.deleteById(id)) {
-        //     return ResponseEntity.noContent().build(); // código 204
-        // } else {
-        //     return ResponseEntity.notFound().build(); // código 404
-        // }
-
     }
 }

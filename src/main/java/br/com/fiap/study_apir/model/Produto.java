@@ -3,6 +3,8 @@ package br.com.fiap.study_apir.model;
 import java.math.BigDecimal;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -21,6 +23,7 @@ import lombok.Setter;
 @Table(name = "produtos")
 public class Produto {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String nome;
     // para valores, usamos BigDecimal
