@@ -19,4 +19,4 @@ jobs:
                 uses: docker/build-push-action@v7
                 with:
                     push: true
-                    tags: acnaweb/study-apir:latest             
+                    tags: lucas-ra/study-apir:latest
