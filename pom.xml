@@ -83,7 +83,7 @@
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- SQL Server / Azure SQL no perfil prd; MySQL permanece para dev. -->
+		<!-- SQL Server em dev/prd; MySQL local disponivel no perfil mysql. -->
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>
