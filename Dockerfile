@@ -9,5 +9,7 @@ WORKDIR /opt/app
 COPY --from=build /opt/app/target/app.jar /opt/app/app.jar
 # define valor padrão para a variável de ambiente SPRING_PROFILES_ACTIVE
 ENV SPRING_PROFILES_ACTIVE=dev
-CMD ["java", "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", "-jar", "app.jar"]
+# O Spring lê SPRING_PROFILES_ACTIVE diretamente do ambiente.
+# O formato exec (JSON) não expande ${VAR} como um shell faria.
+CMD ["java", "-jar", "app.jar"]
 

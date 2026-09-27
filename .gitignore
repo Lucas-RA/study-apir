@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Arquivos locais de comparação e validação; não fazem parte da entrega.
+work/
+.env
+.env.*
+!.env.example

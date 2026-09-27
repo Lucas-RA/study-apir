@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,14 +13,15 @@ name: release-please
 
 jobs:
   release-please:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          # this assumes that you have created a personal access token
-          # (PAT) and configured it as a GitHub action secret named
-          # `MY_RELEASE_PLEASE_TOKEN` (this secret name is not important).
-          token: ${{ secrets.GIT_RELEASE_PLEASE_TOKEN }}
-          # this is a built-in strategy in release-please, see "Action Inputs"
-          # for more options
+          # Usa o PAT da aula quando configurado; senão, usa o token automático.
+          # O GITHUB_TOKEN exige permitir que Actions crie PRs em Settings.
+          # PRs/tags criados com ele não disparam outros workflows automaticamente.
+          token: ${{ secrets.GIT_RELEASE_PLEASE_TOKEN || github.token }}
+          target-branch: main
+          # Atualiza o pom.xml e prepara changelog/tag após o merge da release PR.
           release-type: java

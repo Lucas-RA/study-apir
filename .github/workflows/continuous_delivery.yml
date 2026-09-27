@@ -5,6 +5,11 @@ name: Continuous Delivery
 # Aqui ela roda sempre que houver um push no repositório.
 on:
   push:
+  # Permite testar novamente pela aba Actions após configurar as credenciais.
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 # JOBS
 # Lista de jobs que o workflow vai executar.
@@ -27,6 +32,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Interrompe com uma mensagem clara sem exibir as credenciais.
+      - name: Check Docker Hub configuration
+        env:
+          DOCKER_USER: ${{ vars.DOCKER_USER }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: |
+          test -n "$DOCKER_USER" || { echo '::error::Configure a variável DOCKER_USER em Settings > Secrets and variables > Actions.'; exit 1; }
+          test -n "$DOCKER_TOKEN" || { echo '::error::Configure o secret DOCKER_TOKEN com permissão de escrita no Docker Hub.'; exit 1; }
+
       # STEP
       # Faz login no Docker Hub.
       # DOCKER_USER deve estar em Settings > Secrets and variables > Actions > Variables
@@ -39,11 +53,11 @@ jobs:
 
       # STEP
       # Faz o build da imagem Docker e envia para o Docker Hub.
-      # O repositório lucas-ra/study-apir precisa existir no Docker Hub
+      # O repositório <DOCKER_USER>/study-apir precisa existir no Docker Hub
       # ou sua conta precisa ter permissão para criar/publicar nele.
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: lucas-ra/study-apir:latest
+          tags: ${{ vars.DOCKER_USER }}/study-apir:latest
