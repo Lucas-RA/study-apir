@@ -60,4 +60,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ vars.DOCKER_USER }}/study-apir:latest
+          # A tag por commit permite implantar exatamente a imagem deste build.
+          tags: |
+            ${{ vars.DOCKER_USER }}/study-apir:latest
+            ${{ vars.DOCKER_USER }}/study-apir:sha-${{ github.sha }}

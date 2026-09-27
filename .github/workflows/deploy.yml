@@ -1,0 +1,86 @@
+name: Deploy Study API
+
+on:
+  # Só implanta depois que a imagem da main foi publicada com sucesso.
+  workflow_run:
+    workflows: [Continuous Delivery]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-study-apir-prd
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Habilitar esta variável somente após configurar os recursos e secrets.
+    if: >-
+      vars.AZURE_DEPLOY_ENABLED == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push'))
+    runs-on: ubuntu-latest
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_CONTAINER_APP: ${{ vars.AZURE_CONTAINER_APP }}
+      DOCKER_USER: ${{ vars.DOCKER_USER }}
+      IMAGE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      DB_SERVER_URL: ${{ secrets.DB_SERVER_URL }}
+      DB_SERVER_PORT: ${{ secrets.DB_SERVER_PORT || '1433' }}
+      DB_SCHEMA: ${{ secrets.DB_SCHEMA }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PWD: ${{ secrets.DB_PWD }}
+    steps:
+      - name: Check deployment configuration
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        run: |
+          for key in AZURE_RESOURCE_GROUP AZURE_CONTAINER_APP DOCKER_USER AZURE_CREDENTIALS DB_SERVER_URL DB_SCHEMA DB_USER DB_PWD; do
+            if [ -z "${!key}" ]; then
+              echo "::error::Configure $key em Settings > Secrets and variables > Actions."
+              exit 1
+            fi
+          done
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Update Container App
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            set -eu
+            # Guarda a senha como secret do Azure, sem exibi-la no log.
+            az containerapp secret set \
+              --name "$AZURE_CONTAINER_APP" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --secrets "db-password=$DB_PWD" \
+              --output none
+
+            # Uma revisão nova também reaplica a referência ao secret atualizado.
+            az containerapp update \
+              --name "$AZURE_CONTAINER_APP" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --image "docker.io/$DOCKER_USER/study-apir:sha-$IMAGE_SHA" \
+              --revision-suffix "gh-${{ github.run_id }}-${{ github.run_attempt }}" \
+              --set-env-vars \
+                "SPRING_PROFILES_ACTIVE=prd" \
+                "DB_SERVER_URL=$DB_SERVER_URL" \
+                "DB_SERVER_PORT=$DB_SERVER_PORT" \
+                "DB_SCHEMA=$DB_SCHEMA" \
+                "DB_USER=$DB_USER" \
+                "DB_PWD=secretref:db-password" \
+              --output none
+
+            az containerapp show \
+              --name "$AZURE_CONTAINER_APP" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --query '{name:name,status:properties.runningStatus,fqdn:properties.configuration.ingress.fqdn}' \
+              --output table

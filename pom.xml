@@ -83,6 +83,13 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- SQL Server / Azure SQL no perfil prd; MySQL permanece para dev. -->
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
 		<!-- Model Mapper -->
 		<dependency>
 			<groupId>org.modelmapper</groupId>
