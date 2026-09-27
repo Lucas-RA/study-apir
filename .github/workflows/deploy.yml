@@ -64,13 +64,15 @@ jobs:
               --secrets "db-password=$DB_PWD" \
               --output none
 
-            # Uma revisão nova também reaplica a referência ao secret atualizado.
+            # O ambiente Expresso gera o nome da revisão; não aceita revision-suffix.
+            # O identificador da execução força nova revisão mesmo ao repetir a imagem,
+            # para que o contêiner carregue novamente o secret atualizado.
             az containerapp update \
               --name "$AZURE_CONTAINER_APP" \
               --resource-group "$AZURE_RESOURCE_GROUP" \
               --image "docker.io/$DOCKER_USER/study-apir:sha-$IMAGE_SHA" \
-              --revision-suffix "gh-${{ github.run_id }}-${{ github.run_attempt }}" \
               --set-env-vars \
+                "DEPLOYMENT_RUN=${{ github.run_id }}-${{ github.run_attempt }}" \
                 "SPRING_PROFILES_ACTIVE=prd" \
                 "DB_SERVER_URL=$DB_SERVER_URL" \
                 "DB_SERVER_PORT=$DB_SERVER_PORT" \
