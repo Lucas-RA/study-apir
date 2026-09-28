@@ -2,9 +2,13 @@ name: Continuous Delivery
 
 # EVENT
 # Define quando a Action vai rodar.
-# Aqui ela roda sempre que houver um push no repositório.
+# Como o professor, roda em push na develop (imagem de cada aula).
+# Também roda na main, pois o deploy de produção usa a imagem sha-<commit> da main.
 on:
   push:
+    branches:
+      - develop
+      - main
   # Permite testar novamente pela aba Actions após configurar as credenciais.
   workflow_dispatch:
 
